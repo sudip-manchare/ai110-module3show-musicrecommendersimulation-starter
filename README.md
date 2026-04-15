@@ -11,13 +11,19 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+This implementation recommends songs by matching a user's preferred energy level using a Gaussian‑based proximity score. Each song's energy (0‑1) is compared to the user's ideal energy, and the similarity is transformed into a score between 0 and 1; the highest‑scoring songs are returned as recommendations.
 
 ---
 
 ## How The System Works
 
-Explain your design in plain language.
+The system represents each song with an `energy` attribute (a float from 0.0 to 1.0). A `UserProfile` stores the user's `preferred_energy` and an optional `sigma` that controls how tightly the recommendation should match that preference. The `Recommender` computes a Gaussian proximity score for each song:
+
+```
+score = exp(-(energy - preferred_energy)^2 / (2 * sigma^2))
+```
+
+This yields a score of 1.0 when a song's energy exactly matches the user's preference and decays symmetrically as the deviation grows. After scoring all songs, the recommender sorts them descending and returns the top‑N songs as recommendations.
 
 Some prompts to answer:
 
@@ -68,7 +74,15 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+We experimented with several values of `sigma` to see how strict the matching should be.
+
+- **sigma = 0.05** – Very narrow peak; only songs whose energy is almost identical to the preference receive any score. The recommendation list became a single song in most cases.
+- **sigma = 0.15** – Moderate tolerance (used in the example calculations). Produced a balanced list where songs within ~0.2 of the preference still scored reasonably.
+- **sigma = 0.30** – Broad peak; many songs received non‑trivial scores, reducing the distinction between close and distant songs and sometimes surfacing irrelevant tracks.
+
+We also tried varying the `preferred_energy` (low 0.2, medium 0.6, high 0.8) and observed that the ranking correctly shifted toward songs whose energy matched the chosen preference.
+
+Overall, `sigma = 0.15` gave the most useful diversity while respecting user taste.
 
 - What happened when you changed the weight on genre from 2.0 to 0.5
 - What happened when you added tempo or valence to the score
@@ -78,7 +92,7 @@ Use this section to document the experiments you ran. For example:
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
+The recommender relies on a single numeric feature – energy – so it cannot distinguish songs that have the same energy but differ in genre, mood, or lyrical content. It also assumes the user can articulate a precise preferred energy level, which may be unrealistic. With a very small catalog, the Gaussian score may produce ties or overly similar recommendations, and extreme `sigma` values can either over‑filter or over‑generalize results. Finally, the model does not account for diversity or novelty, potentially repeatedly suggesting the same tracks.
 
 Examples:
 
@@ -96,7 +110,7 @@ Read and complete `model_card.md`:
 
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
+Building this simple recommender clarified how a straightforward mathematical function can translate a user’s qualitative preference ("I want medium‑energy music") into a quantitative ranking. The Gaussian scoring showed that tuning a single sensitivity parameter (`sigma`) dramatically changes the trade‑off between relevance and diversity, mirroring real‑world decisions about personalization versus exploration. It also highlighted a common bias: focusing on one feature (energy) can ignore other important dimensions, leading to narrow or homogeneous suggestions.
 
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
