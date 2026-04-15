@@ -35,6 +35,16 @@ Some prompts to answer:
 
 You can include a simple diagram or bullet list if helpful.
 
+## Screenshots
+
+Below are example runs of the recommender for the three profiles:
+
+![High‑Energy Pop](Screenshot 2026-04-14 at 10.54.06 PM.png)
+
+![Chill Lofi](Screenshot 2026-04-14 at 10.54.30 PM.png)
+
+![Deep Intense Rock](Screenshot 2026-04-14 at 10.54.45 PM.png)
+
 ---
 
 ## Getting Started
